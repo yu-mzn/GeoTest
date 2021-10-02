@@ -2,8 +2,6 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8">
-  <title>位置情報取得サンプル</title>
-
   <script>
     // Geolocation APIに対応している
     if (navigator.geolocation) {
@@ -13,37 +11,175 @@
       alert("この端末では位置情報が取得できません");
     }
 
-    // 現在地取得処理
-    function getPosition() {
-      // 現在地を取得
-      navigator.geolocation.getCurrentPosition(
-        // 取得成功した場合
-        function(position) {
-            alert("緯度:"+position.coords.latitude+",経度"+position.coords.longitude+",精度"+position.coords.accuracy);
-        },
-        // 取得失敗した場合
-        function(error) {
-          switch(error.code) {
-            case 1: //PERMISSION_DENIED
-              alert("位置情報の利用が許可されていません");
-              break;
-            case 2: //POSITION_UNAVAILABLE
-              alert("現在位置が取得できませんでした");
-              break;
-            case 3: //TIMEOUT
-              alert("タイムアウトになりました");
-              break;
-            default:
-              alert("その他のエラー(エラーコード:"+error.code+")");
-              break;
+  function calc_distance_0(){
+		var x1,y1,x2,y2,d1;
+
+		x1=document.getElementById("val_1").value;
+		y1=document.getElementById("val_2").value;
+		x2=document.getElementById("val_3").value;
+		y2=document.getElementById("val_4").value;
+		d1 = Math.sqrt((x1-x2)**2 + (y1-y2)**2);
+		alert(d1);
+  }
+
+  function calc_distance_1(){
+	var x1,y1,x2,y2,d1,p1,dx,dy;
+	var GRx=6378137;
+	var GRy=6356752.314245;
+	var GE=0.081819191;
+	var Gw,Gm,Gn;
+
+	//テキストボックスから値を取得
+	x1=document.getElementById("val_1").value;
+	y1=document.getElementById("val_2").value;
+	x2=document.getElementById("val_3").value;
+	y2=document.getElementById("val_4").value;
+	//緯度経度をラジアンに変換 x経度 y緯度
+	x1=x1*Math.PI/180;
+	y1=y1*Math.PI/180;
+	x2=x2*Math.PI/180;
+	y2=y2*Math.PI/180;
+	dx=x1-x2;
+	dy=y1-y2;
+	p1=(y1+y2)/2;
+	Gw=Math.sqrt(1-GE*GE*Math.sin(p1)*Math.sin(p1));
+	Gm=GRx*(1-GE**2)/(Gw**3);
+	Gn=GRx/Gw;
+		
+	d1 = Math.sqrt(dy*dy*Gm*Gm + dx*dx*Gn*Gn*Math.cos(p1)*Math.cos(p1));
+	alert(d1);
+  }
+
+  //引数として緯度と経度を入れる　緯度→経度の順番で入れるようにする
+  function calc_distance_2(y1,x1,y2,x2){
+	var d1,p1,dx,dy;
+	var GRx=6378137;
+	var GRy=6356752.314245;
+	var GE=0.081819191;
+	var Gw,Gm,Gn;
+
+	//緯度経度をラジアンに変換 x経度 y緯度
+	x1=x1*Math.PI/180;
+	y1=y1*Math.PI/180;
+	x2=x2*Math.PI/180;
+	y2=y2*Math.PI/180;
+	dx=x1-x2;
+	dy=y1-y2;
+	p1=(y1+y2)/2;
+	Gw=Math.sqrt(1-GE*GE*Math.sin(p1)*Math.sin(p1));
+	Gm=GRx*(1-GE**2)/(Gw**3);
+	Gn=GRx/Gw;
+		
+	d1 = Math.sqrt(dy*dy*Gm*Gm + dx*dx*Gn*Gn*Math.cos(p1)*Math.cos(p1));
+	alert(d1);
+	return d1;
+  }
+
+  // 現在地取得処理
+  function getPosition() {
+    // 現在地を取得
+    navigator.geolocation.getCurrentPosition(
+      // 取得成功した場合
+      function(position) {
+        alert("緯度:"+position.coords.latitude+",経度"+position.coords.longitude+",精度"+position.coords.accuracy);
+		document.getElementById("val_2").value = position.coords.latitude;
+		document.getElementById("val_1").value = position.coords.longitude;
+		return [position.coords.latitude,position.coords.longitude];
+      },
+      // 取得失敗した場合
+      function(error) {
+        switch(error.code) {
+          case 1: //PERMISSION_DENIED
+            alert("位置情報の利用が許可されていません");
+			//breakを変更
+            return [0,0];
+          case 2: //POSITION_UNAVAILABLE
+            alert("現在位置が取得できませんでした");
+            return [0,0];
+          case 3: //TIMEOUT
+            alert("タイムアウトになりました");
+            return [0,0];
+          default:
+            alert("その他のエラー(エラーコード:"+error.code+")");
+            return [0,0];
           }
         }
       );
-    }
+  }
+
+  //ターゲットとの距離の比較
+  function judge(mode){
+	var x1,y1,x2,y2,dist;
+	var border = 50;
+	var ar1 = [0,0];
+	
+	//ターゲットを[緯度,経度,キーワード]の配列で記録する
+	//最終的にはcsvファイルから読み込むようにしたい
+	var list_target = [
+	[35.1208914,136.9931929,"チェック１　原交差点"],
+	[35.1299943,136.9810154,"チェック２　植田南ファミマ"],
+	[35.1365379,136.9641828,"チェック３　八事２番出口"],
+	[35.1513730,136.9494191,"チェック４　川名公園　石碑"],
+	[35.1590956,136.9355179,"チェック５　吹上２番出口"],
+	[35.1626813,136.9091279,"チェック６　ピラミッド噴水"],
+	[35.1723609,136.9083523,"チェック７　テレビ塔"],
+	[35.1595401,136.9026125,"チェック８　大須公園"],
+	[35.1555630,136.9189617,"チェック９　鶴舞公園　噴水"],
+	[35.1487846,136.9471951,"チェック１０　川名ファミマ"],
+	[35.1487789,136.9744370,"チェック１１　東山ミニストップ"],
+	[35.1396638,136.9929451,"チェック１２　植田中学校北交差点"]
+	];
+	//x1,y1をテキストボックスから読みだす
+	x1=document.getElementById("val_2").value;
+	y1=document.getElementById("val_1").value;
+	//mode=1　取得した現在位置を使って比較(x1,y1を上書き)
+	if (mode == 1){
+		ar1 = getPosition();
+		x1 = ar1[1];
+		y1 = ar1[0];
+	}
+	
+	//ターゲットとの距離を計算する
+	for (const list_tmp of list_target){
+		alert("緯度1:"+y1+",経度1:"+x1);
+		alert("緯度2:"+list_tmp[0]+",経度2:"+list_tmp[1]);
+		dist = calc_distance_2(y1,x1,list_tmp[0],list_tmp[1]);
+		if (dist < border){
+			alert("キーワードは  "+list_tmp[2] );
+			}
+		
+		}
+
+
+  
+  }
+
   </script>
 </head>
 <body>
-  <h1>位置情報取得サンプル</h1>
-  <button onclick="getPosition();">位置情報を取得する</button>
+  <h1>緯度経度を測定する</h1>
+
+  <p>
+	<button onclick="getPosition();">位置情報を取得する</button>
+  </p>
+
+  <h1>２点間の距離を計算する</h1>
+
+  <p>
+	<input type="number" id="val_1" value=35.1174893>
+	<input type="number" id="val_2" value=136.9696597>
+	<input type="number" id="val_3" value=35.1147251>
+	<input type="number" id="val_4" value=137.0150556>
+  </p>
+
+  <p>
+	<input type="button" value="距離を計算する" onclick="calc_distance_1();">
+  </p>
+  <p>
+	<input type="button" value="変数を取得して距離を計算する" onclick="calc_distance_2(0,0,3,4);">
+  </p>
+    <p>
+	<input type="button" value="ターゲットとの距離を確認する" onclick="judge(0);">
+  </p>
 </body>
 </html>
