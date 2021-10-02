@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <script>
+	var pos_x,pos_y;
     // Geolocation APIに対応している
     if (navigator.geolocation) {
       alert("この端末では位置情報が取得できます");
@@ -71,7 +72,7 @@
 	Gn=GRx/Gw;
 		
 	d1 = Math.sqrt(dy*dy*Gm*Gm + dx*dx*Gn*Gn*Math.cos(p1)*Math.cos(p1));
-	alert(d1);
+	//alert(d1);
 	return d1;
   }
 
@@ -82,36 +83,33 @@
       // 取得成功した場合
       function(position) {
         alert("緯度:"+position.coords.latitude+",経度"+position.coords.longitude+",精度"+position.coords.accuracy);
-		document.getElementById("val_2").value = position.coords.latitude;
-		document.getElementById("val_1").value = position.coords.longitude;
-		return [position.coords.latitude,position.coords.longitude];
+		pos_x = position.coords.longitude;
+		pos_y = position.coords.latitude;
       },
       // 取得失敗した場合
       function(error) {
         switch(error.code) {
           case 1: //PERMISSION_DENIED
             alert("位置情報の利用が許可されていません");
-			//breakを変更
-            return [0,0];
+			break;
           case 2: //POSITION_UNAVAILABLE
             alert("現在位置が取得できませんでした");
-            return [0,0];
+            break;
           case 3: //TIMEOUT
             alert("タイムアウトになりました");
-            return [0,0];
+            break;
           default:
             alert("その他のエラー(エラーコード:"+error.code+")");
-            return [0,0];
-          }
+            break;
         }
-      );
+      }
+    );
   }
 
   //ターゲットとの距離の比較
   function judge(mode){
-	var x1,y1,x2,y2,dist;
+	var dist;
 	var border = 50;
-	var ar1 = [0,0];
 	
 	//ターゲットを[緯度,経度,キーワード]の配列で記録する
 	//最終的にはcsvファイルから読み込むようにしたい
@@ -129,29 +127,57 @@
 	[35.1487789,136.9744370,"チェック１１　東山ミニストップ"],
 	[35.1396638,136.9929451,"チェック１２　植田中学校北交差点"]
 	];
+
 	//x1,y1をテキストボックスから読みだす
-	x1=document.getElementById("val_2").value;
-	y1=document.getElementById("val_1").value;
-	//mode=1　取得した現在位置を使って比較(x1,y1を上書き)
-	if (mode == 1){
-		ar1 = getPosition();
-		x1 = ar1[1];
-		y1 = ar1[0];
-	}
-	
-	//ターゲットとの距離を計算する
-	for (const list_tmp of list_target){
-		alert("緯度1:"+y1+",経度1:"+x1);
-		alert("緯度2:"+list_tmp[0]+",経度2:"+list_tmp[1]);
-		dist = calc_distance_2(y1,x1,list_tmp[0],list_tmp[1]);
-		if (dist < border){
-			alert("キーワードは  "+list_tmp[2] );
+	if(mode==0){
+		pos_x=document.getElementById("val_2").value;
+		pos_y=document.getElementById("val_1").value;
+		//ターゲットとの距離を計算する
+		for (const list_tmp of list_target){
+			//alert("緯度1:"+y1+",経度1:"+x1);
+			//alert("緯度2:"+list_tmp[0]+",経度2:"+list_tmp[1]);
+			dist = calc_distance_2(pos_y,pos_x,list_tmp[0],list_tmp[1]);
+			//alert("check");
+			if (dist < border){
+				alert("キーワードは  "+list_tmp[2] );
 			}
-		
 		}
-
-
-  
+	}
+	if(mode==1){
+		navigator.geolocation.getCurrentPosition(
+			// 取得成功した場合
+			function(position) {
+				alert("緯度:"+position.coords.latitude+",経度"+position.coords.longitude+",精度"+position.coords.accuracy);
+				pos_x = position.coords.longitude;
+				pos_y = position.coords.latitude;
+				for (const list_tmp of list_target){
+					dist = calc_distance_2(pos_y,pos_x,list_tmp[0],list_tmp[1]);
+					alert(dist);
+					if (dist < border){
+						alert("キーワードは  "+list_tmp[2] );
+					}
+				}
+				alert("check finished");
+			},
+			// 取得失敗した場合
+			function(error) {
+				switch(error.code) {
+					case 1: //PERMISSION_DENIED
+					alert("位置情報の利用が許可されていません");
+					break;
+					case 2: //POSITION_UNAVAILABLE
+					alert("現在位置が取得できませんでした");
+					break;
+					case 3: //TIMEOUT
+					alert("タイムアウトになりました");
+					break;
+					default:
+					alert("その他のエラー(エラーコード:"+error.code+")");
+					break;
+				}
+			}
+		);
+	}
   }
 
   </script>
@@ -178,8 +204,8 @@
   <p>
 	<input type="button" value="変数を取得して距離を計算する" onclick="calc_distance_2(0,0,3,4);">
   </p>
-    <p>
-	<input type="button" value="ターゲットとの距離を確認する" onclick="judge(0);">
+  <p>
+	<input type="button" value="ターゲットとの距離を確認する" onclick="judge(1);">
   </p>
 </body>
 </html>
