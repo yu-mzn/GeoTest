@@ -127,6 +127,18 @@
 	[35.1487789,136.9744370,"チェック１１　東山ミニストップ"],
 	[35.1396638,136.9929451,"チェック１２　植田中学校北交差点"]
 	];
+	var list_target_1ststage = [
+	[35.1588194,136.9072729,"チェック１　上前津駅１番出口"],
+	[35.1611407,136.9089226,"チェック２　フラリエ"],
+	[35.1617529,136.9062445,"チェック３　矢場とん"],
+	[35.1590913,136.9048597,"チェック４　万松寺"],
+	[35.1582216,136.9047017,"チェック５　招き猫"],
+	[35.1586837,136.9015281,"チェック６　仁王通交差点"],
+	[35.1594938,136.8993925,"チェック７　大須観音"],
+	[35.1598542,136.9007046,"チェック８　演芸場"],
+	[35.1595434,136.9026217,"チェック９　大須公園"],
+	[35.1612680,136.9039549,"チェック１０　ゴール"]
+	];
 
 	//x1,y1をテキストボックスから読みだす
 	if(mode==0){
@@ -143,18 +155,29 @@
 			}
 		}
 	}
-	if(mode==1){
+	if(mode > 0){
 		navigator.geolocation.getCurrentPosition(
 			// 取得成功した場合
 			function(position) {
 				alert("緯度:"+position.coords.latitude+",経度"+position.coords.longitude+",精度"+position.coords.accuracy);
 				pos_x = position.coords.longitude;
 				pos_y = position.coords.latitude;
-				for (const list_tmp of list_target){
-					dist = calc_distance_2(pos_y,pos_x,list_tmp[0],list_tmp[1]);
-					alert(dist);
-					if (dist < border){
-						alert("キーワードは  "+list_tmp[2] );
+				if(mode==1){
+					for (const list_tmp of list_target){
+						dist = calc_distance_2(pos_y,pos_x,list_tmp[0],list_tmp[1]);
+						alert(dist);
+						if (dist < border){
+							alert("キーワードは  "+list_tmp[2] );
+						}
+					}
+				}
+				if(mode==2){
+					for (const list_tmp of list_target_1ststage){
+						dist = calc_distance_2(pos_y,pos_x,list_tmp[0],list_tmp[1]);
+						//alert(dist);
+						if (dist < border){
+							alert("キーワードは  "+list_tmp[2] );
+						}
 					}
 				}
 				alert("check finished");
@@ -206,6 +229,10 @@
   </p>
   <p>
 	<input type="button" value="ターゲットとの距離を確認する" onclick="judge(1);">
+	<input type="button" value="ステージ１" onclick="judge(2);">
+  </p>
+  <p>
+	<a href="https://www.google.co.jp/maps/">現在位置を確認(google mapへ移動)</a>
   </p>
 </body>
 </html>
